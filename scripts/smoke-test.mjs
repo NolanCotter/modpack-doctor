@@ -9,9 +9,9 @@ function spawnNpx(args, options) {
   return spawn('npx', args, options);
 }
 
-function run(command, args) {
+function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawnNpx([command, ...args], { stdio: 'inherit' });
+    const child = spawnNpx([command, ...args], { stdio: 'inherit', ...options });
     child.once('error', reject);
     child.once('exit', (code) => code === 0 ? resolve() : reject(new Error(`${command} exited with ${code}`)));
   });
@@ -45,10 +45,13 @@ function stopServer(server) {
   });
 }
 
-await run('vite', ['build', '--base', '/']);
+await run('vite', ['build', '--base', '/'], {
+  env: { ...process.env, VITE_BASE_PATH: '/' },
+});
 
 const server = spawnNpx(['vite', 'preview', '--host', host, '--port', port, '--strictPort'], {
   stdio: 'pipe',
+  env: { ...process.env, VITE_BASE_PATH: '/' },
 });
 
 try {
