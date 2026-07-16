@@ -35,8 +35,14 @@ async function waitForServer() {
 function stopServer(server) {
   if (server.exitCode !== null) return Promise.resolve();
   if (process.platform !== 'win32') {
-    server.kill();
-    return new Promise((resolve) => server.once('exit', resolve));
+    return new Promise((resolve) => {
+      const timeout = setTimeout(resolve, 2_000);
+      server.once('exit', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      server.kill();
+    });
   }
   return new Promise((resolve) => {
     const taskkill = spawn('taskkill.exe', ['/pid', String(server.pid), '/T', '/F'], { stdio: 'ignore' });
