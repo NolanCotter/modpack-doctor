@@ -41,7 +41,11 @@ function stopServer(server) {
         clearTimeout(timeout);
         resolve();
       });
-      server.kill();
+      try {
+        process.kill(-server.pid, 'SIGTERM');
+      } catch {
+        server.kill();
+      }
     });
   }
   return new Promise((resolve) => {
@@ -58,6 +62,7 @@ await run('vite', ['build', '--base', '/'], {
 const server = spawnNpx(['vite', 'preview', '--host', host, '--port', port, '--strictPort'], {
   stdio: 'pipe',
   env: { ...process.env, VITE_BASE_PATH: '/' },
+  detached: process.platform !== 'win32',
 });
 
 try {
